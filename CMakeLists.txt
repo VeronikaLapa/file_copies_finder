@@ -14,7 +14,7 @@ find_package(Qt5Core REQUIRED)
 find_package(Qt5Gui REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 
-add_executable(finder main.cpp mainwindow.h mainwindow.cpp)
+add_executable(finder main.cpp mainwindow.h mainwindow.cpp finder.cpp finder.h)
 
 
 # указываем, какие библиотеки необходимо подключить
