@@ -21,12 +21,23 @@ else ()
     message( FATAL_ERROR "No googletest src dir found - set GOOGLETEST_DIR to enable!")
 endif ()
 
+set (FINDER_DIR "D:/University/2018-2019/cpp/dirdemo-master")
 
-include_directories(${GTestSrc} ${GTestSrc}/include ${GMockSrc} ${GMockSrc}/include)
+include_directories(${GTestSrc} ${GTestSrc}/include ${GMockSrc} ${GMockSrc}/include ${FINDER_DIR})
 
 add_executable(${PROJECT_NAME} main.cpp tst_finder.h
                ${GTestSrc}/src/gtest-all.cc
-               ${GMockSrc}/src/gmock-all.cc)
+               ${GMockSrc}/src/gmock-all.cc
+               ${FINDER_DIR}/finder.h
+               ${FINDER_DIR}/finder.cpp
+               )
 add_test(${PROJECT_NAME} COMMAND ${PROJECT_NAME})
-target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
+target_link_libraries(${PROJECT_NAME} Threads::Threads)
+find_package(Qt5Core REQUIRED)
+find_package(Qt5Gui REQUIRED)
+find_package(Qt5Widgets REQUIRED)
 
+# указываем, какие библиотеки необходимо подключить
+target_link_libraries(${PROJECT_NAME} Qt5::Core)
+target_link_libraries(${PROJECT_NAME} Qt5::Gui)
+target_link_libraries(${PROJECT_NAME} Qt5::Widgets)

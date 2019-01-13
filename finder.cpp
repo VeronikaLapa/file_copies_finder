@@ -2,6 +2,7 @@
 #include <QDirIterator>
 #include <set>
 #include <QCryptographicHash>
+#include <QDir>
 
 using namespace std;
 const size_t BUFFER_SIZE = 128;

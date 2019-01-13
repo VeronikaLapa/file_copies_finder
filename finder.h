@@ -1,7 +1,6 @@
 #ifndef FINDER_H
 #define FINDER_H
 #include <map>
-#include <QString>
 #include <QDir>
 #include <set>
 
