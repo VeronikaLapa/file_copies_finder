@@ -7,7 +7,7 @@
 using namespace std;
 const size_t BUFFER_SIZE = 128;
 
-void find_copies_in_group(set<QFile*>& group) {
+void finder::find_copies_in_group(set<QFile*>& group) {
     map<long long, set<QFile*>> subgroups;
     char buffer[BUFFER_SIZE];
     bool is_end = false;
@@ -33,6 +33,8 @@ void find_copies_in_group(set<QFile*>& group) {
         for (QFile* file_ptr: group) {
             equel_files.insert(file_ptr->fileName());
         }
+        if (equel_files.size() > 0)
+            copies.insert(equel_files);
     }
 }
 finder::finder(QDir dir): dir(dir) {
@@ -49,11 +51,31 @@ finder::~finder() {
         }
     }
 }
+
+set<QFile*> opened_files(set<QFile*>& group) {
+    set<QFile*> res;
+    for (QFile* file_ptr : group) {
+        if (file_ptr->open(QIODevice::ReadOnly)) {
+           res.insert(file_ptr);
+        }
+    }
+    return res;
+}
+void close_files_in_group(set<QFile*>&group) {
+    for (QFile* file_ptr : group) {
+        file_ptr->close();
+    }
+}
 void finder::find_copies() {
     for (pair<long long, set<QFile*>> group: files) {
         if(group.second.size() > 0) {
+            group.second = opened_files(group.second);
             find_copies_in_group(group.second);
+            close_files_in_group(group.second);
         }
     }
+}
+set<set<QString>> finder::get_copies() {
+    return copies;
 }
 

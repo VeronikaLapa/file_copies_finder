@@ -3,20 +3,47 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock-matchers.h>
 #include "finder.h"
+#include <string>
+#include <QTextStream>
 
 #include <QDir>
 
 using namespace testing;
-
-TEST(finder, find)
+QDir dir;
+TEST(finder, EXAMPLE)
 {
     EXPECT_EQ(1, 1);
     ASSERT_THAT(0, Eq(0));
 }
 
-TEST(finder, EXAMPLE2)
+TEST(finder, EMPTY_DIR)
 {
-    QDir directory = QDir("D:/University/2018-2019/cpp/dirdemo-master");
-    finder f = finder(directory);
-    EXPECT_EQ(1, 1);
+    QDir test_dir(dir.path() +"/empty");
+    if (!test_dir.exists()) {
+         QDir().mkdir(dir.path() +"/empty");
+    }
+    finder f = finder(test_dir);
+    f.find_copies();
+    EXPECT_EQ(f.get_copies().size(), 0);
 }
+
+TEST(finder, TWO_COPIES)
+{
+    QDir test_dir(dir.path() +"/two_copies");
+    if (!test_dir.exists()) {
+         QDir().mkdir(dir.path() +"/two_copies");
+    }
+    for (int i = 0; i < 2; ++i) {
+        QString filename = dir.path() + "/two_copies/" + QString::number(i) + ".txt";
+        QFile file(filename);
+        if (file.open(QIODevice::ReadWrite)) {
+            QTextStream stream(&file);
+            stream << "abc" << endl;
+        }
+    }
+    finder f = finder(test_dir);
+    f.find_copies();
+    EXPECT_EQ(f.get_copies().size(), 1);
+    EXPECT_EQ(f.get_copies().begin()->size(), 2);
+}
+
