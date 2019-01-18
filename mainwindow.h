@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <memory>
+#include <QTreeWidget>
 
 namespace Ui {
 class MainWindow;
@@ -20,6 +21,10 @@ private slots:
     void select_directory();
     void scan_directory(QString const& dir);
     void show_about_dialog();
+    void onTreeItemClicked(QTreeWidgetItem*);
+    void find_copies();
+
+    //void delete_files(QVector<QString>& files);
 
 private:
     std::unique_ptr<Ui::MainWindow> ui;
