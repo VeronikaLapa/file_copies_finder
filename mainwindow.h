@@ -23,8 +23,7 @@ private slots:
     void show_about_dialog();
     void onTreeItemClicked(QTreeWidgetItem*);
     void find_copies();
-
-    //void delete_files(QVector<QString>& files);
+    void delete_files();
 
 private:
     std::unique_ptr<Ui::MainWindow> ui;

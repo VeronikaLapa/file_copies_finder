@@ -30,8 +30,30 @@ main_window::main_window(QWidget *parent)
     connect(ui->actionAbout, &QAction::triggered, this, &main_window::show_about_dialog);
     connect(ui->treeWidget,SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)), this, SLOT(onTreeItemClicked(QTreeWidgetItem*)));
     connect(ui->findButton, SIGNAL(clicked()), this, SLOT(find_copies()));
+    connect(ui->deleteButton, SIGNAL(clicked()), this, SLOT(delete_files()));
 
     scan_directory(QDir::homePath());
+}
+
+void main_window::delete_files() {
+    QList<QTreeWidgetItem*> selected_items = {};
+    for(int i = 0; i < ui->copiesTree->topLevelItemCount(); ++i ) {
+       QTreeWidgetItem *item = ui->copiesTree->topLevelItem(i);
+       for (int j = 0; j < item->childCount(); ++j) {
+           if (item->child(j)->checkState(0) == Qt::Checked) {
+               selected_items.append(item->takeChild(j));
+           }
+       }
+       if (item->childCount() <= 1) {
+           ui->copiesTree->takeTopLevelItem(i);
+       } else {
+           item->setText(0, QString::number(item->childCount()) + " copies of file");
+       }
+    }
+    for (QTreeWidgetItem* file : selected_items) {
+        QString fullFilePath = (file->data(0,Qt::UserRole)).toString();
+        QFile(fullFilePath).remove();
+    }
 }
 
 void main_window::find_copies() {
@@ -45,10 +67,21 @@ void main_window::find_copies() {
            finder f = finder(QDir(fullFilePath));
            f.find_copies();
            std::set<std::set<QString>> copies = f.get_copies();
+           ui->copiesTree->clear();
            for (std::set<QString> group : copies) {
+               QTreeWidgetItem* parent_item = new QTreeWidgetItem(ui->copiesTree);
+               parent_item->setText(0, QString::number(group.size()) + " copies of file");
+               ui->copiesTree->addTopLevelItem(item);
                for (QString file : group) {
-                   ui->listView->model()->removeRows(0, ui->listView->model()->rowCount());
-                   // find haw show it
+                    QTreeWidgetItem* item = new QTreeWidgetItem(parent_item);
+                    item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+                    item->setCheckState(0, Qt::Unchecked);
+                    QFileInfo file_info(file);
+                    item->setText(1,file_info.fileName());
+                    item->setText(2, file_info.filePath());
+                    item->setText(3,  QString::number(file_info.size()));
+                    item->setData(0, Qt::UserRole, file);
+                    parent_item->addChild(item);
                }
            }
        }
