@@ -47,3 +47,10 @@ TEST(finder, TWO_COPIES)
     EXPECT_EQ(f.get_copies().begin()->size(), 2);
 }
 
+TEST(finder, CHOSEN_DIR)
+{
+    finder f = finder(QDir("D:/University/2017-2018/2017-2018_прога_весна/hw6_1/paradigms-2018"));
+    f.find_copies();
+    EXPECT_EQ(1, 1);
+}
+

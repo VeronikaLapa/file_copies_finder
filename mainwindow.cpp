@@ -31,7 +31,6 @@ main_window::main_window(QWidget *parent)
     connect(ui->treeWidget,SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)), this, SLOT(onTreeItemClicked(QTreeWidgetItem*)));
     connect(ui->findButton, SIGNAL(clicked()), this, SLOT(find_copies()));
     connect(ui->deleteButton, SIGNAL(clicked()), this, SLOT(delete_files()));
-
     scan_directory(QDir::homePath());
 }
 
@@ -55,38 +54,42 @@ void main_window::delete_files() {
         QFile(fullFilePath).remove();
     }
 }
-
-void main_window::find_copies() {
-   QList<QTreeWidgetItem *> items = ui->treeWidget->selectedItems();
-   if (items.size() != 1) {
-       return;
-   }
-   for (QTreeWidgetItem * item: items) {
-       QString fullFilePath = (item->data(0,Qt::UserRole)).toString();
-       if(QFileInfo(fullFilePath).isDir()) {
-           finder f = finder(QDir(fullFilePath));
-           f.find_copies();
-           std::set<std::set<QString>> copies = f.get_copies();
-           ui->copiesTree->clear();
-           for (std::set<QString> group : copies) {
-               QTreeWidgetItem* parent_item = new QTreeWidgetItem(ui->copiesTree);
-               parent_item->setText(0, QString::number(group.size()) + " copies of file");
-               ui->copiesTree->addTopLevelItem(item);
-               for (QString file : group) {
-                    QTreeWidgetItem* item = new QTreeWidgetItem(parent_item);
-                    item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-                    item->setCheckState(0, Qt::Unchecked);
-                    QFileInfo file_info(file);
-                    item->setText(1,file_info.fileName());
-                    item->setText(2, file_info.filePath());
-                    item->setText(3,  QString::number(file_info.size()));
-                    item->setData(0, Qt::UserRole, file);
-                    parent_item->addChild(item);
-               }
-           }
-       }
-   }
+void main_window::show_copies(std::set<std::set<QString>>& copies) {
+    for (std::set<QString> group : copies) {
+        QTreeWidgetItem* parent_item = new QTreeWidgetItem(ui->copiesTree);
+        parent_item->setText(0, QString::number(group.size()) + " copies of file");
+        ui->copiesTree->addTopLevelItem(new QTreeWidgetItem);
+        for (QString file : group) {
+            QTreeWidgetItem* item = new QTreeWidgetItem(parent_item);
+            item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+            item->setCheckState(0, Qt::Unchecked);
+            QFileInfo file_info(file);
+            item->setText(1,file_info.fileName());
+            item->setText(2, file_info.filePath());
+            item->setText(3,  QString::number(file_info.size()));
+            item->setData(0, Qt::UserRole, file);
+            parent_item->addChild(item);
+        }
+    }
 }
+void main_window::find_copies() {
+    QList<QTreeWidgetItem *> items = ui->treeWidget->selectedItems();
+    QString fullFilePath;
+    if (items.size() == 1) {
+        QTreeWidgetItem * item = items[0];
+        fullFilePath = (item->data(0,Qt::UserRole)).toString();
+    } else {
+        fullFilePath = crnt_dir;
+    }
+    if(QFileInfo(fullFilePath).isDir()) {
+        ui->copiesTree->clear();
+        finder f = finder(QDir(fullFilePath));
+        f.find_copies();
+        std::set<std::set<QString>> copies = f.get_copies();
+        show_copies(copies);
+    }
+}
+
 void main_window::onTreeItemClicked(QTreeWidgetItem* item) {
     QVariant file = item->data(0,Qt::UserRole);
     QString fullFilePath = file.toString();
@@ -101,12 +104,12 @@ void main_window::select_directory()
 {
     QString dir = QFileDialog::getExistingDirectory(this, "Select Directory for Scanning",
                                                     QString(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-
     scan_directory(dir);
 }
 
 void main_window::scan_directory(QString const& dir)
 {
+    crnt_dir = dir;
     ui->treeWidget->clear();
 
     setWindowTitle(QString("Directory Content - %1").arg(dir));
