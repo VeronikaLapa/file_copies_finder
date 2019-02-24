@@ -7,8 +7,11 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QFutureWatcher>
 #include <QMessageBox>
+#include <QProgressDialog>
 #include <QTreeWidgetItem>
+#include <QtConcurrent/QtConcurrent>
 
 main_window::main_window(QWidget *parent)
     : QMainWindow(parent)
@@ -72,6 +75,12 @@ void main_window::show_copies(std::set<std::set<QString>>& copies) {
         }
     }
 }
+
+void concat_sets(std::set<std::set<QString>>& res, const std::set<std::set<QString>>& intermid) {
+    for (std::set<QString> group : intermid) {
+        res.insert(group);
+    }
+}
 void main_window::find_copies() {
     QList<QTreeWidgetItem *> items = ui->treeWidget->selectedItems();
     QString fullFilePath;
@@ -83,10 +92,23 @@ void main_window::find_copies() {
     }
     if(QFileInfo(fullFilePath).isDir()) {
         ui->copiesTree->clear();
-        finder f = finder(QDir(fullFilePath));
-        f.find_copies();
-        std::set<std::set<QString>> copies = f.get_copies();
-        show_copies(copies);
+        //finder f = finder(QDir(fullFilePath));
+        QList<std::set<QString>> files = sort_all_files(QDir(fullFilePath));
+        QFutureWatcher<std::set<std::set<QString>>> watcher;
+        QProgressDialog dialog;
+        dialog.setLabelText(QString("Scaning..."));
+        connect(&watcher, SIGNAL(finished()), &dialog, SLOT(reset()));
+        connect(&dialog, SIGNAL(canceled()), &watcher, SLOT(cancel()));
+        connect(&watcher, SIGNAL(progressRangeChanged(int, int)), &dialog, SLOT(setRange(int, int)));
+        connect(&watcher, SIGNAL(progressValueChanged(int)), &dialog, SLOT(setValue(int)));
+        watcher.setFuture(QtConcurrent::mappedReduced(files, find_in_group, concat_sets));
+        dialog.exec();
+        watcher.waitForFinished();
+        std::set<std::set<QString>> res = watcher.result();
+        show_copies(res);
+        //f.find_copies();
+        //std::set<std::set<QString>> copies = f.get_copies();
+        //show_copies(copies);
     }
 }
 

@@ -5,6 +5,7 @@
 #include <set>
 #include <QObject>
 
+
 class finder
 {
 public:
@@ -13,13 +14,13 @@ public:
     void find_copies();
     std::set<std::set<QString>> get_copies();
     int files_count();
+    std::map<long long, std::set<QFile*>> files;
 private:
     void find_copies_in_group(std::set<QFile*>&);
-    std::map<long long, std::set<QFile*>> files;
     std::set<std::set<QString>> copies;
     QDir dir;
-signals:
-    void progress(int);
 };
+QList<std::set<QString>> sort_all_files(QDir dir);
+std::set<std::set<QString>> find_in_group(std::set<QString>);
 
 #endif // FINDER_H
