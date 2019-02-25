@@ -76,11 +76,6 @@ void main_window::show_copies(std::set<std::set<QString>>& copies) {
     }
 }
 
-void concat_sets(std::set<std::set<QString>>& res, const std::set<std::set<QString>>& intermid) {
-    for (std::set<QString> group : intermid) {
-        res.insert(group);
-    }
-}
 void main_window::find_copies() {
     QList<QTreeWidgetItem *> items = ui->treeWidget->selectedItems();
     QString fullFilePath;
@@ -93,6 +88,7 @@ void main_window::find_copies() {
     if(QFileInfo(fullFilePath).isDir()) {
         ui->copiesTree->clear();
         //finder f = finder(QDir(fullFilePath));
+        process_status = true;
         QList<std::set<QString>> files = sort_all_files(QDir(fullFilePath));
         QFutureWatcher<std::set<std::set<QString>>> watcher;
         QProgressDialog dialog;
@@ -101,17 +97,23 @@ void main_window::find_copies() {
         connect(&dialog, SIGNAL(canceled()), &watcher, SLOT(cancel()));
         connect(&watcher, SIGNAL(progressRangeChanged(int, int)), &dialog, SLOT(setRange(int, int)));
         connect(&watcher, SIGNAL(progressValueChanged(int)), &dialog, SLOT(setValue(int)));
+        //process_status = 1;
         watcher.setFuture(QtConcurrent::mappedReduced(files, find_in_group, concat_sets));
         dialog.exec();
         watcher.waitForFinished();
-        std::set<std::set<QString>> res = watcher.result();
-        show_copies(res);
+        if (watcher.isFinished()){
+            std::set<std::set<QString>> res = watcher.result();
+            show_copies(res);
+        }
         //f.find_copies();
         //std::set<std::set<QString>> copies = f.get_copies();
         //show_copies(copies);
     }
 }
 
+void main_window::stop_scaning() {
+    process_status = false;
+}
 void main_window::onTreeItemClicked(QTreeWidgetItem* item) {
     QVariant file = item->data(0,Qt::UserRole);
     QString fullFilePath = file.toString();

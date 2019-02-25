@@ -26,9 +26,11 @@ private slots:
     void onTreeItemClicked(QTreeWidgetItem*);
     void find_copies();
     void delete_files();
-
+    void stop_scaning();
 
 private:
+    std::set<std::set<QString>> finder(std::set<QString>& path_group);
+    std::atomic_bool process_status;
     QString crnt_dir;
     void show_copies(std::set<std::set<QString>>& copies);
     std::unique_ptr<Ui::MainWindow> ui;
