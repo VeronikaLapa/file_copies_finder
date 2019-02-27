@@ -12,6 +12,7 @@
 #include <QProgressDialog>
 #include <QTreeWidgetItem>
 #include <QtConcurrent/QtConcurrent>
+#include <iostream>
 
 main_window::main_window(QWidget *parent)
     : QMainWindow(parent)
@@ -101,13 +102,14 @@ void main_window::find_copies() {
         watcher.setFuture(QtConcurrent::mappedReduced(files, find_in_group, concat_sets));
         dialog.exec();
         watcher.waitForFinished();
-        if (watcher.isFinished()){
+        if (watcher.isCanceled()) {
+                    QMessageBox msgBox;
+                    msgBox.setText("The scaning was canceled");
+                    msgBox.exec();
+        } else {
             std::set<std::set<QString>> res = watcher.result();
             show_copies(res);
         }
-        //f.find_copies();
-        //std::set<std::set<QString>> copies = f.get_copies();
-        //show_copies(copies);
     }
 }
 

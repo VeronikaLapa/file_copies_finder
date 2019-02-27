@@ -4,6 +4,7 @@
 #include <QCryptographicHash>
 #include <QDir>
 #include "mainwindow.h"
+#include <iostream>
 
 using namespace std;
 const size_t BUFFER_SIZE = 128;
