@@ -89,7 +89,6 @@ void main_window::find_copies() {
     if(QFileInfo(fullFilePath).isDir()) {
         ui->copiesTree->clear();
         //finder f = finder(QDir(fullFilePath));
-        process_status = true;
         QList<std::set<QString>> files = sort_all_files(QDir(fullFilePath));
         QFutureWatcher<std::set<std::set<QString>>> watcher;
         QProgressDialog dialog;
@@ -113,9 +112,6 @@ void main_window::find_copies() {
     }
 }
 
-void main_window::stop_scaning() {
-    process_status = false;
-}
 void main_window::onTreeItemClicked(QTreeWidgetItem* item) {
     QVariant file = item->data(0,Qt::UserRole);
     QString fullFilePath = file.toString();
