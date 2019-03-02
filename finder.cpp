@@ -30,6 +30,8 @@ std::set<std::set<QString>> find_in_group(std::set<QString> path_group) {
         QFile* crnt = new QFile(path);
         if (crnt->open(QIODevice::ReadOnly)) {
             group.insert(crnt);
+        } else {
+            delete crnt;
         }
     }
     if (group.size() < 2) {
